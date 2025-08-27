@@ -111,8 +111,8 @@ export default function LoginPage() {
 
           <div className="mt-6 text-xs text-gray-500 space-y-1">
             <p className="font-semibold">Demo Credentials:</p>
-            <p>Intern: john.intern / password123</p>
-            <p>Manager: sarah.manager / password123</p>
+            <p>Intern: chidi.intern / password123</p>
+            <p>Manager: folake.manager / password123</p>
             <p>HR Admin: admin.hr / password123</p>
           </div>
         </CardContent>

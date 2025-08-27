@@ -3,11 +3,11 @@ export const mockUsers = [
   {
     id: 1,
     role: "intern",
-    username: "Tobi.Bankole",
-    name: "Tobi Bankole",
-    email: "tobi.bankole@company.com",
-    phone: "08123456798",
-    department: "Information Technology",
+    username: "chidi.intern",
+    name: "Chidi Okafor", // Updated to Nigerian native name
+    email: "chidi.okafor@company.com", // Updated email to match new name
+    phone: "+234 803 123 4567", // Updated to Nigerian phone format
+    department: "Engineering",
     squad_id: "squad_1",
     line_manager_id: 4,
     interests: ["JavaScript", "Machine Learning", "UI Design"],
@@ -21,11 +21,11 @@ export const mockUsers = [
   {
     id: 2,
     role: "intern",
-    username: "sarah.momodu",
-    name: "Sarah Momodu",
-    email: "sarah.momodu@company.com",
-    phone: "07022349976",
-    department: "Internal Comms",
+    username: "amara.intern",
+    name: "Amara Nwosu", // Updated to Nigerian native name
+    email: "amara.nwosu@company.com", // Updated email to match new name
+    phone: "+234 805 234 5678", // Updated to Nigerian phone format
+    department: "Marketing",
     squad_id: "squad_1",
     line_manager_id: 5,
     interests: ["Digital Marketing", "Content Creation", "Analytics"],
@@ -39,11 +39,11 @@ export const mockUsers = [
   {
     id: 3,
     role: "intern",
-    username: "mike.sinjen",
-    name: "Mike Sinjen",
-    email: "mike.sinjen@company.com",
-    phone: "+1 (555) 345-6789",
-    department: "Sustainability",
+    username: "kemi.intern",
+    name: "Kemi Adebayo", // Updated to Nigerian native name
+    email: "kemi.adebayo@company.com", // Updated email to match new name
+    phone: "+234 807 345 6789", // Updated to Nigerian phone format
+    department: "Design",
     squad_id: "squad_1",
     line_manager_id: 6,
     interests: ["UI/UX Design", "Prototyping", "User Research"],
@@ -57,36 +57,36 @@ export const mockUsers = [
   {
     id: 4,
     role: "line_manager",
-    username: "sarah.manager",
-    name: "Tomiwa Wilson",
-    email: "tomiwa.wilson@company.com",
-    department: "Information Technology",
+    username: "folake.manager",
+    name: "Folake Adeyemi", // Updated to Nigerian native name
+    email: "folake.adeyemi@company.com", // Updated email to match new name
+    department: "Engineering",
     assigned_interns: [1],
   },
   {
     id: 5,
     role: "line_manager",
-    username: "david.manager",
-    name: "David Osas",
-    email: "david.osas@company.com",
-    department: "Internal Comms",
+    username: "emeka.manager",
+    name: "Emeka Okwu", // Updated to Nigerian native name
+    email: "emeka.okwu@company.com", // Updated email to match new name
+    department: "Marketing",
     assigned_interns: [2],
   },
   {
     id: 6,
     role: "line_manager",
-    username: "lisa.manager",
-    name: "Temitayo Ibiyemi",
-    email: "temitayo.ibiyemi@company.com",
-    department: "Supply Chain",
+    username: "funmi.manager",
+    name: "Funmi Ogundipe", // Updated to Nigerian native name
+    email: "funmi.ogundipe@company.com", // Updated email to match new name
+    department: "Design",
     assigned_interns: [3],
   },
   {
     id: 7,
     role: "hr_admin",
     username: "admin.hr",
-    name: "Admin User",
-    email: "admin@company.com",
+    name: "Adunni Bakare", // Updated to Nigerian native name
+    email: "adunni.bakare@company.com", // Updated email to match new name
     department: "Human Resources",
   },
 ]
@@ -212,7 +212,7 @@ export const mockPosts = [
   {
     id: 1,
     author_id: 1,
-    author_name: "John Doe",
+    author_name: "Chidi Okafor", // Updated to match new name
     content:
       "Just finished setting up my development environment! Excited to start working on some real projects. Any tips for a new engineering intern?",
     timestamp: "2024-06-02T10:30:00Z",
@@ -224,7 +224,7 @@ export const mockPosts = [
   {
     id: 2,
     author_id: 2,
-    author_name: "Sarah Johnson",
+    author_name: "Amara Nwosu", // Updated to match new name
     content: "Working on a new marketing campaign for our summer project. The creative process is so inspiring! 🎨",
     timestamp: "2024-06-02T14:15:00Z",
     scope: "squad",
@@ -235,7 +235,7 @@ export const mockPosts = [
   {
     id: 3,
     author_id: 3,
-    author_name: "Mike Chen",
+    author_name: "Kemi Adebayo", // Updated to match new name
     content:
       "Prototyped my first user interface today. The feedback from my mentor was incredibly helpful. Design thinking is fascinating!",
     timestamp: "2024-06-02T16:45:00Z",
@@ -247,7 +247,7 @@ export const mockPosts = [
   {
     id: 4,
     author_id: 1,
-    author_name: "John Doe",
+    author_name: "Chidi Okafor", // Updated to match new name
     content: "Squad lunch was amazing! Great to connect with everyone outside of work. Team bonding is so important.",
     timestamp: "2024-06-01T13:20:00Z",
     scope: "squad",
@@ -258,7 +258,7 @@ export const mockPosts = [
   {
     id: 5,
     author_id: 2,
-    author_name: "Sarah Johnson",
+    author_name: "Amara Nwosu", // Updated to match new name
     content:
       "Attended my first company all-hands meeting today. The vision and culture here are truly inspiring. Proud to be part of this team!",
     timestamp: "2024-06-01T17:30:00Z",
@@ -274,44 +274,44 @@ export const mockRatings = [
   {
     id: 1,
     rater_id: 1,
-    rater_name: "John Doe",
+    rater_name: "Chidi Okafor", // Updated to match new name
     ratee_id: 2,
-    ratee_name: "Sarah Johnson",
+    ratee_name: "Amara Nwosu", // Updated to match new name
     rating: 5,
-    feedback: "Sarah is incredibly creative and always brings fresh ideas to our squad discussions. Great team player!",
+    feedback: "Amara is incredibly creative and always brings fresh ideas to our squad discussions. Great team player!",
     category: "peer", // "peer" or "manager"
     timestamp: "2024-06-01T14:30:00Z",
   },
   {
     id: 2,
     rater_id: 1,
-    rater_name: "John Doe",
+    rater_name: "Chidi Okafor", // Updated to match new name
     ratee_id: 4,
-    ratee_name: "Sarah Wilson",
+    ratee_name: "Folake Adeyemi", // Updated to match new name
     rating: 4,
-    feedback: "Sarah provides excellent guidance and is always available when I need help. Very supportive manager.",
+    feedback: "Folake provides excellent guidance and is always available when I need help. Very supportive manager.",
     category: "manager",
     timestamp: "2024-06-01T16:45:00Z",
   },
   {
     id: 3,
     rater_id: 2,
-    rater_name: "Sarah Johnson",
+    rater_name: "Amara Nwosu", // Updated to match new name
     ratee_id: 1,
-    ratee_name: "John Doe",
+    ratee_name: "Chidi Okafor", // Updated to match new name
     rating: 4,
-    feedback: "John is very dedicated and asks great questions. His technical skills are impressive for an intern.",
+    feedback: "Chidi is very dedicated and asks great questions. His technical skills are impressive for an intern.",
     category: "peer",
     timestamp: "2024-06-02T09:15:00Z",
   },
   {
     id: 4,
     rater_id: 3,
-    rater_name: "Mike Chen",
+    rater_name: "Kemi Adebayo", // Updated to match new name
     ratee_id: 1,
-    ratee_name: "John Doe",
+    ratee_name: "Chidi Okafor", // Updated to match new name
     rating: 5,
-    feedback: "John has been super helpful with technical questions and is always willing to collaborate.",
+    feedback: "Chidi has been super helpful with technical questions and is always willing to collaborate.",
     category: "peer",
     timestamp: "2024-06-02T11:20:00Z",
   },
@@ -375,8 +375,8 @@ export const mockKnowledgeFiles = [
 export const mockMentors = [
   {
     id: 101,
-    name: "Alex Thompson",
-    department: "Information Technology",
+    name: "Tunde Adesanya", // Updated to Nigerian native name
+    department: "Engineering",
     role: "Senior Software Engineer",
     expertise: ["JavaScript", "React", "Node.js", "Machine Learning"],
     current_mentees: 2,
@@ -386,9 +386,9 @@ export const mockMentors = [
   },
   {
     id: 102,
-    name: "Maria Rodriguez",
-    department: "Supply Chain",
-    role: "Senior Manager",
+    name: "Ngozi Okonkwo", // Updated to Nigerian native name
+    department: "Design",
+    role: "Senior UX Designer",
     expertise: ["UI/UX Design", "Prototyping", "User Research", "Design Systems"],
     current_mentees: 1,
     max_mentees: 2,
@@ -397,9 +397,9 @@ export const mockMentors = [
   },
   {
     id: 103,
-    name: "David Kim",
-    department: "Internal Comms",
-    role: "Assistant Director",
+    name: "Segun Oladele", // Updated to Nigerian native name
+    department: "Marketing",
+    role: "Marketing Director",
     expertise: ["Digital Marketing", "Content Creation", "Analytics", "Brand Strategy"],
     current_mentees: 3,
     max_mentees: 4,
@@ -408,7 +408,7 @@ export const mockMentors = [
   },
   {
     id: 104,
-    name: "Jennifer Chen",
+    name: "Chioma Eze", // Updated to Nigerian native name
     department: "Engineering",
     role: "Data Scientist",
     expertise: ["Python", "Machine Learning", "Data Science", "AI"],
