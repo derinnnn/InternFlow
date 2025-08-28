@@ -12,8 +12,18 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { mockUsers, mockSquads, availableInterests } from "@/lib/mock-data"
-import { Camera, Edit2, Save, X } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { mockUsers, mockSquads, availableInterests, mockDepartments } from "@/lib/mock-data"
+import { Camera, Edit2, Save, X, AlertTriangle, FileText } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 export default function InternProfile() {
@@ -23,6 +33,13 @@ export default function InternProfile() {
   const [profileData, setProfileData] = useState<any>(null)
   const [editData, setEditData] = useState<any>({})
   const [selectedInterests, setSelectedInterests] = useState<string[]>([])
+  const [showComplaintForm, setShowComplaintForm] = useState(false)
+  const [complaintType, setComplaintType] = useState<"poor_treatment" | "department_change" | null>(null)
+  const [complaintData, setComplaintData] = useState({
+    description: "",
+    requestedDepartment: "",
+    reasonForNewDept: "",
+  })
 
   useEffect(() => {
     if (user) {
@@ -69,6 +86,71 @@ export default function InternProfile() {
     }
   }
 
+  const handleComplaintSubmit = () => {
+    if (!complaintType) {
+      toast({
+        title: "Error",
+        description: "Please select a complaint type.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!complaintData.description.trim()) {
+      toast({
+        title: "Error",
+        description: "Please provide a description.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (
+      complaintType === "department_change" &&
+      (!complaintData.requestedDepartment || !complaintData.reasonForNewDept.trim())
+    ) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields for department change request.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Create complaint object
+    const complaint = {
+      id: Date.now(),
+      internId: user?.id,
+      internName: user?.name,
+      type: complaintType,
+      description: complaintData.description,
+      requestedDepartment: complaintType === "department_change" ? complaintData.requestedDepartment : undefined,
+      reasonForNewDept: complaintType === "department_change" ? complaintData.reasonForNewDept : undefined,
+      status: "pending",
+      timestamp: new Date().toISOString(),
+      hrNotes: "",
+    }
+
+    // Save to localStorage
+    const existingComplaints = JSON.parse(localStorage.getItem("internflow_complaints") || "[]")
+    const updatedComplaints = [complaint, ...existingComplaints]
+    localStorage.setItem("internflow_complaints", JSON.stringify(updatedComplaints))
+
+    // Reset form
+    setComplaintData({
+      description: "",
+      requestedDepartment: "",
+      reasonForNewDept: "",
+    })
+    setComplaintType(null)
+    setShowComplaintForm(false)
+
+    toast({
+      title: "Complaint Submitted",
+      description: "Your complaint has been submitted to HR for review.",
+    })
+  }
+
   if (!profileData) {
     return <div>Loading...</div>
   }
@@ -87,23 +169,178 @@ export default function InternProfile() {
                 <h1 className="text-2xl font-bold text-gray-900">My Profile</h1>
                 <p className="text-gray-600">Manage your personal information</p>
               </div>
-              {!isEditing ? (
-                <Button onClick={() => setIsEditing(true)} className="bg-blue-600 hover:bg-blue-700">
-                  <Edit2 className="h-4 w-4 mr-2" />
-                  Edit Profile
-                </Button>
-              ) : (
-                <div className="space-x-2">
-                  <Button onClick={handleSave} className="bg-green-600 hover:bg-green-700">
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Changes
+              <div className="flex gap-2">
+                <Dialog open={showComplaintForm} onOpenChange={setShowComplaintForm}>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="border-orange-200 text-orange-700 hover:bg-orange-50 bg-transparent"
+                    >
+                      <AlertTriangle className="h-4 w-4 mr-2" />
+                      File Complaint
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>File Complaint or Request</DialogTitle>
+                      <DialogDescription>
+                        Submit a complaint about poor treatment or request a department change
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-6">
+                      <div>
+                        <Label className="text-base font-medium">Type of Complaint/Request</Label>
+                        <div className="space-y-3 mt-2">
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="poor_treatment"
+                              checked={complaintType === "poor_treatment"}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setComplaintType("poor_treatment")
+                                  setComplaintData({
+                                    description: "",
+                                    requestedDepartment: "",
+                                    reasonForNewDept: "",
+                                  })
+                                }
+                              }}
+                            />
+                            <Label htmlFor="poor_treatment" className="cursor-pointer">
+                              Poor treatment or unprofessional behavior
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="department_change"
+                              checked={complaintType === "department_change"}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setComplaintType("department_change")
+                                  setComplaintData({
+                                    description: "",
+                                    requestedDepartment: "",
+                                    reasonForNewDept: "",
+                                  })
+                                }
+                              }}
+                            />
+                            <Label htmlFor="department_change" className="cursor-pointer">
+                              Request department change
+                            </Label>
+                          </div>
+                        </div>
+                      </div>
+
+                      {complaintType && (
+                        <div className="space-y-4">
+                          <div>
+                            <Label htmlFor="description">
+                              {complaintType === "poor_treatment"
+                                ? "Detailed Description"
+                                : "Current Situation Description"}
+                            </Label>
+                            <Textarea
+                              id="description"
+                              placeholder={
+                                complaintType === "poor_treatment"
+                                  ? "Please describe the incident(s) in detail..."
+                                  : "Describe your current situation and why you want to change departments..."
+                              }
+                              value={complaintData.description}
+                              onChange={(e) => setComplaintData({ ...complaintData, description: e.target.value })}
+                              rows={4}
+                              className="mt-1"
+                            />
+                          </div>
+
+                          {complaintType === "department_change" && (
+                            <>
+                              <div>
+                                <Label htmlFor="requestedDepartment">Preferred Department</Label>
+                                <Select
+                                  value={complaintData.requestedDepartment}
+                                  onValueChange={(value) =>
+                                    setComplaintData({ ...complaintData, requestedDepartment: value })
+                                  }
+                                >
+                                  <SelectTrigger className="mt-1">
+                                    <SelectValue placeholder="Select department" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {mockDepartments
+                                      .filter((dept) => dept.name !== profileData.department)
+                                      .map((dept) => (
+                                        <SelectItem key={dept.id} value={dept.name}>
+                                          {dept.name}
+                                        </SelectItem>
+                                      ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div>
+                                <Label htmlFor="reasonForNewDept">
+                                  Why would you be a good fit for this department?
+                                </Label>
+                                <Textarea
+                                  id="reasonForNewDept"
+                                  placeholder="Explain your skills, interests, and experience that make you suitable for this department..."
+                                  value={complaintData.reasonForNewDept}
+                                  onChange={(e) =>
+                                    setComplaintData({ ...complaintData, reasonForNewDept: e.target.value })
+                                  }
+                                  rows={3}
+                                  className="mt-1"
+                                />
+                              </div>
+                            </>
+                          )}
+
+                          <div className="flex gap-2 pt-4">
+                            <Button onClick={handleComplaintSubmit} className="flex-1">
+                              <FileText className="h-4 w-4 mr-2" />
+                              Submit {complaintType === "poor_treatment" ? "Complaint" : "Request"}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setShowComplaintForm(false)
+                                setComplaintType(null)
+                                setComplaintData({
+                                  description: "",
+                                  requestedDepartment: "",
+                                  reasonForNewDept: "",
+                                })
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                {!isEditing ? (
+                  <Button onClick={() => setIsEditing(true)} className="bg-blue-600 hover:bg-blue-700">
+                    <Edit2 className="h-4 w-4 mr-2" />
+                    Edit Profile
                   </Button>
-                  <Button onClick={() => setIsEditing(false)} variant="outline">
-                    <X className="h-4 w-4 mr-2" />
-                    Cancel
-                  </Button>
-                </div>
-              )}
+                ) : (
+                  <div className="space-x-2">
+                    <Button onClick={handleSave} className="bg-green-600 hover:bg-green-700">
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Changes
+                    </Button>
+                    <Button onClick={() => setIsEditing(false)} variant="outline">
+                      <X className="h-4 w-4 mr-2" />
+                      Cancel
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

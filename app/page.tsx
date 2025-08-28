@@ -47,6 +47,8 @@ export default function LoginPage() {
         case "hr_admin":
           router.push("/admin/dashboard")
           break
+        default:
+          setError("Unknown role selected")
       }
     } else {
       setError("Invalid credentials. Use password: password123")

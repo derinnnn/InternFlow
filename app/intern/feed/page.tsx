@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { mockPosts, mockUsers, mockSquads } from "@/lib/mock-data"
-import { Heart, MessageCircle, Send, Users, Globe } from "lucide-react"
+import { Heart, MessageCircle, Send, Users, Globe, Megaphone } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 interface Post {
@@ -26,10 +26,20 @@ interface Post {
   comments: number
 }
 
+interface Announcement {
+  id: number
+  title: string
+  content: string
+  author: string
+  timestamp: string
+  type: "announcement"
+}
+
 export default function InternFeed() {
   const { user } = useAuth()
   const { toast } = useToast()
   const [posts, setPosts] = useState<Post[]>([])
+  const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [newPost, setNewPost] = useState("")
   const [postToSquad, setPostToSquad] = useState(false)
   const [isPosting, setIsPosting] = useState(false)
@@ -39,6 +49,7 @@ export default function InternFeed() {
     // Load posts and liked posts from localStorage
     const savedPosts = localStorage.getItem("internflow_posts")
     const savedLikes = localStorage.getItem(`internflow_likes_${user?.id}`)
+    const savedAnnouncements = localStorage.getItem("internflow_announcements")
 
     if (savedPosts) {
       setPosts(JSON.parse(savedPosts))
@@ -49,6 +60,10 @@ export default function InternFeed() {
 
     if (savedLikes) {
       setLikedPosts(JSON.parse(savedLikes))
+    }
+
+    if (savedAnnouncements) {
+      setAnnouncements(JSON.parse(savedAnnouncements))
     }
   }, [user])
 
@@ -191,7 +206,42 @@ export default function InternFeed() {
 
             {/* Posts Feed */}
             <div className="space-y-4">
-              {filteredPosts.length === 0 ? (
+              {announcements.map((announcement) => (
+                <Card
+                  key={`announcement-${announcement.id}`}
+                  className="border-l-4 border-l-blue-500 bg-blue-50 hover:shadow-md transition-shadow"
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <Megaphone className="h-5 w-5 text-blue-600" />
+                      </div>
+
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-2">
+                            <h4 className="font-semibold text-gray-900">{announcement.title}</h4>
+                            <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+                              <Megaphone className="h-3 w-3 mr-1" />
+                              Announcement
+                            </Badge>
+                          </div>
+                          <span className="text-sm text-gray-500">{formatTimestamp(announcement.timestamp)}</span>
+                        </div>
+
+                        <p className="text-gray-900 mb-3 leading-relaxed">{announcement.content}</p>
+
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-600 font-medium">by {announcement.author}</span>
+                          <span className="text-xs text-blue-600 font-medium">Official Announcement</span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+
+              {filteredPosts.length === 0 && announcements.length === 0 ? (
                 <Card>
                   <CardContent className="p-8 text-center">
                     <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />

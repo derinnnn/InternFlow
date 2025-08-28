@@ -418,3 +418,75 @@ export const mockMentors = [
     bio: "PhD in Computer Science with specialization in machine learning and artificial intelligence.",
   },
 ]
+
+// Mock Announcements Data
+export const mockAnnouncements = [
+  {
+    id: 1,
+    title: "Welcome to Summer 2024 Internship Program",
+    content:
+      "We're excited to welcome all our new interns! Please complete your onboarding tasks and don't hesitate to reach out if you need any assistance. Looking forward to a productive summer!",
+    author: "HR Admin",
+    timestamp: "2024-06-01T09:00:00Z",
+    type: "announcement",
+  },
+  {
+    id: 2,
+    title: "Mid-Program Check-in Reminder",
+    content:
+      "This is a friendly reminder that mid-program evaluations are due by the end of this week. Please ensure you've completed your peer ratings and submitted any feedback forms.",
+    author: "HR Admin",
+    timestamp: "2024-06-15T14:30:00Z",
+    type: "announcement",
+  },
+  {
+    id: 3,
+    title: "Company All-Hands Meeting - June 20th",
+    content:
+      "Join us for our monthly all-hands meeting on June 20th at 2:00 PM in the main auditorium. All interns are encouraged to attend to learn about company updates and upcoming projects.",
+    author: "HR Admin",
+    timestamp: "2024-06-18T10:15:00Z",
+    type: "announcement",
+  },
+]
+
+// Mock Complaints Data
+export const mockComplaints = [
+  {
+    id: 1,
+    internId: 2,
+    internName: "Amara Nwosu",
+    type: "poor_treatment",
+    description:
+      "I've experienced some unprofessional behavior from a team member during meetings. They frequently interrupt and dismiss my ideas without consideration.",
+    status: "pending",
+    timestamp: "2024-06-10T11:30:00Z",
+    hrNotes: "",
+  },
+  {
+    id: 2,
+    internId: 3,
+    internName: "Kemi Adebayo",
+    type: "department_change",
+    description:
+      "I've discovered a strong interest in data analysis and would like to explore opportunities in the Engineering department.",
+    requestedDepartment: "Engineering",
+    reasonForNewDept:
+      "I have been working on personal data science projects and feel my analytical skills would be better utilized in the Engineering team. I've also been learning Python and machine learning in my spare time.",
+    status: "approved",
+    timestamp: "2024-06-05T16:20:00Z",
+    hrNotes:
+      "Approved based on strong technical aptitude and genuine interest. Will coordinate with Engineering team for transition.",
+  },
+]
+
+// Mock Departments Data
+export const mockDepartments = [
+  { id: 1, name: "Engineering", manager: "Folake Adeyemi" },
+  { id: 2, name: "Marketing", manager: "Emeka Okwu" },
+  { id: 3, name: "Design", manager: "Funmi Ogundipe" },
+  { id: 4, name: "Human Resources", manager: "Adunni Bakare" },
+  { id: 5, name: "Sales", manager: "Bola Adebisi" },
+  { id: 6, name: "Operations", manager: "Yemi Ogundimu" },
+  { id: 7, name: "Finance", manager: "Kola Adesina" },
+]
