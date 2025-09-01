@@ -22,9 +22,68 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { mockUsers, mockSquads, availableInterests, mockDepartments } from "@/lib/mock-data"
-import { Camera, Edit2, Save, X, AlertTriangle, FileText } from "lucide-react"
+import { mockUsers, mockSquads, skillCategories, mockDepartments, mockMentorshipGroups } from "@/lib/mock-data"
+import { Camera, Edit2, Save, X, AlertTriangle, FileText, Search } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+
+const assignMentorshipGroup = (internInterests: string[], allUsers: any[], existingGroups: any[]) => {
+  // Find other interns with similar interests
+  const otherInterns = allUsers.filter((u) => u.role === "intern" && u.interests && u.interests.length > 0)
+
+  // Calculate interest overlap with each intern
+  const interestMatches = otherInterns
+    .map((intern) => {
+      const sharedInterests = internInterests.filter((interest) => intern.interests.includes(interest))
+      return {
+        intern,
+        sharedInterests,
+        overlapCount: sharedInterests.length,
+      }
+    })
+    .filter((match) => match.overlapCount >= 2) // Minimum 2 shared interests
+
+  // Try to find existing group with space and good interest match
+  for (const group of existingGroups) {
+    if (group.members.length < 6) {
+      // Max 6 members per group
+      const groupInterests = group.sharedInterests
+      const commonWithGroup = internInterests.filter((interest) => groupInterests.includes(interest))
+      if (commonWithGroup.length >= 2) {
+        return {
+          groupId: group.id,
+          groupName: group.name,
+          sharedInterests: commonWithGroup,
+        }
+      }
+    }
+  }
+
+  // Create new group if no suitable existing group found
+  const topMatches = interestMatches.sort((a, b) => b.overlapCount - a.overlapCount).slice(0, 2) // Get top 2 matches for new group
+
+  if (topMatches.length > 0) {
+    const allSharedInterests = internInterests.filter((interest) =>
+      topMatches.every((match) => match.sharedInterests.includes(interest)),
+    )
+
+    const newGroupId = `mentor_${Date.now()}`
+    const groupName = `${allSharedInterests.slice(0, 2).join(" & ")} Group`
+
+    return {
+      groupId: newGroupId,
+      groupName,
+      sharedInterests: allSharedInterests,
+      isNewGroup: true,
+    }
+  }
+
+  // Fallback: assign to general group
+  return {
+    groupId: "mentor_general",
+    groupName: "General Skills Group",
+    sharedInterests: internInterests.slice(0, 3),
+  }
+}
 
 export default function InternProfile() {
   const { user } = useAuth()
@@ -33,6 +92,7 @@ export default function InternProfile() {
   const [profileData, setProfileData] = useState<any>(null)
   const [editData, setEditData] = useState<any>({})
   const [selectedInterests, setSelectedInterests] = useState<string[]>([])
+  const [skillSearch, setSkillSearch] = useState("")
   const [showComplaintForm, setShowComplaintForm] = useState(false)
   const [complaintType, setComplaintType] = useState<"poor_treatment" | "department_change" | null>(null)
   const [complaintData, setComplaintData] = useState({
@@ -53,10 +113,32 @@ export default function InternProfile() {
   }, [user])
 
   const handleSave = () => {
+    if (selectedInterests.length < 3) {
+      toast({
+        title: "Insufficient Interests",
+        description: "Please select at least 3 interests for mentorship matching.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (selectedInterests.length > 5) {
+      toast({
+        title: "Too Many Interests",
+        description: "Please select maximum 5 interests for focused mentorship matching.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Assign mentorship group based on interests
+    const groupAssignment = assignMentorshipGroup(selectedInterests, mockUsers, mockMentorshipGroups)
+
     // Simulate saving profile data
     const updatedData = {
       ...editData,
       interests: selectedInterests,
+      mentorship_group_id: groupAssignment.groupId,
     }
     setProfileData(updatedData)
     setIsEditing(false)
@@ -65,15 +147,32 @@ export default function InternProfile() {
     const updatedUser = { ...user, ...updatedData }
     localStorage.setItem("internflow_user", JSON.stringify(updatedUser))
 
+    // Save group assignment if new group was created
+    if (groupAssignment.isNewGroup) {
+      const existingGroups = JSON.parse(localStorage.getItem("internflow_mentorship_groups") || "[]")
+      const newGroup = {
+        id: groupAssignment.groupId,
+        name: groupAssignment.groupName,
+        members: [user?.id],
+        sharedInterests: groupAssignment.sharedInterests,
+        createdDate: new Date(),
+        description: `Focused on ${groupAssignment.sharedInterests.join(", ").toLowerCase()}`,
+      }
+      existingGroups.push(newGroup)
+      localStorage.setItem("internflow_mentorship_groups", JSON.stringify(existingGroups))
+    }
+
     toast({
       title: "Profile Updated",
-      description: "Your profile has been successfully updated.",
+      description: `Profile updated and assigned to ${groupAssignment.groupName}!`,
     })
   }
 
   const handleInterestToggle = (interest: string) => {
     setSelectedInterests((prev) => (prev.includes(interest) ? prev.filter((i) => i !== interest) : [...prev, interest]))
   }
+
+  const filteredSkills = skillCategories.filter((skill) => skill.toLowerCase().includes(skillSearch.toLowerCase()))
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -157,6 +256,7 @@ export default function InternProfile() {
 
   const squad = mockSquads.find((s) => s.id === profileData.squad_id)
   const lineManager = mockUsers.find((u) => u.id === profileData.line_manager_id)
+  const mentorshipGroup = mockMentorshipGroups.find((g) => g.id === profileData.mentorship_group_id)
 
   return (
     <AuthGuard allowedRoles={["intern"]}>
@@ -441,30 +541,59 @@ export default function InternProfile() {
                 </CardContent>
               </Card>
 
-              {/* Interests */}
+              {/* Enhanced Skills & Interests */}
               <Card className="lg:col-span-3">
                 <CardHeader>
-                  <CardTitle>Interests</CardTitle>
+                  <CardTitle>Skills & Interests</CardTitle>
                   <CardDescription>
-                    {isEditing ? "Select at least 3 interests for mentorship matching" : "Your selected interests"}
+                    {isEditing
+                      ? "Select 3-5 skills for mentorship group matching"
+                      : "Your selected skills and interests"}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   {isEditing ? (
                     <div className="space-y-4">
-                      <div className="flex flex-wrap gap-2">
-                        {availableInterests.map((interest) => (
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <Input
+                          placeholder="Search skills..."
+                          value={skillSearch}
+                          onChange={(e) => setSkillSearch(e.target.value)}
+                          className="pl-10"
+                        />
+                      </div>
+
+                      <div className="flex flex-wrap gap-2 max-h-64 overflow-y-auto">
+                        {filteredSkills.map((skill) => (
                           <Badge
-                            key={interest}
-                            variant={selectedInterests.includes(interest) ? "default" : "outline"}
-                            className="cursor-pointer"
-                            onClick={() => handleInterestToggle(interest)}
+                            key={skill}
+                            variant={selectedInterests.includes(skill) ? "default" : "outline"}
+                            className="cursor-pointer hover:bg-blue-100 transition-colors"
+                            onClick={() => handleInterestToggle(skill)}
                           >
-                            {interest}
+                            {skill}
                           </Badge>
                         ))}
                       </div>
-                      <p className="text-sm text-gray-600">Selected: {selectedInterests.length} (minimum 3 required)</p>
+
+                      <div className="flex justify-between items-center text-sm">
+                        <span
+                          className={`${selectedInterests.length < 3 ? "text-red-600" : selectedInterests.length > 5 ? "text-orange-600" : "text-green-600"}`}
+                        >
+                          Selected: {selectedInterests.length} (3-5 required for mentorship matching)
+                        </span>
+                        {selectedInterests.length > 0 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setSelectedInterests([])}
+                            className="text-gray-500 hover:text-gray-700"
+                          >
+                            Clear All
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   ) : (
                     <div className="flex flex-wrap gap-2">
@@ -478,10 +607,11 @@ export default function InternProfile() {
                 </CardContent>
               </Card>
 
-              {/* Squad and Manager Info */}
+              {/* Squad Information */}
               <Card>
                 <CardHeader>
                   <CardTitle>Squad Information</CardTitle>
+                  <CardDescription>Date-based internship group</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
@@ -497,6 +627,40 @@ export default function InternProfile() {
                 </CardContent>
               </Card>
 
+              <Card>
+                <CardHeader>
+                  <CardTitle>Mentorship Group</CardTitle>
+                  <CardDescription>Interest-based learning group</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div>
+                      <Label>Group</Label>
+                      <p className="text-gray-900 font-medium">{mentorshipGroup?.name || "Not assigned"}</p>
+                    </div>
+                    {mentorshipGroup && (
+                      <>
+                        <div>
+                          <Label>Shared Interests</Label>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {mentorshipGroup.sharedInterests.slice(0, 3).map((interest: string) => (
+                              <Badge key={interest} variant="outline" className="text-xs">
+                                {interest}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <Label>Group Members</Label>
+                          <p className="text-gray-600">{mentorshipGroup.members.length} members</p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Line Manager */}
               <Card>
                 <CardHeader>
                   <CardTitle>Line Manager</CardTitle>
@@ -516,12 +680,12 @@ export default function InternProfile() {
               </Card>
 
               {/* Internship Details */}
-              <Card>
+              <Card className="lg:col-span-3">
                 <CardHeader>
                   <CardTitle>Internship Details</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label>Start Date</Label>
                       <p className="text-gray-900 font-medium">

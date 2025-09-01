@@ -8,10 +8,10 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import { mockPosts, mockUsers, mockSquads } from "@/lib/mock-data"
-import { Heart, MessageCircle, Send, Users, Globe, Megaphone } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { mockPosts, mockUsers, mockSquads, mockMentorshipGroups } from "@/lib/mock-data"
+import { Heart, MessageCircle, Send, Users, Globe, Megaphone, Target } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 interface Post {
@@ -20,8 +20,9 @@ interface Post {
   author_name: string
   content: string
   timestamp: string
-  scope: "all" | "squad"
+  scope: "all" | "squad" | "mentorship"
   squad_id: string
+  mentorship_group_id?: string
   likes: number
   comments: number
 }
@@ -41,7 +42,7 @@ export default function InternFeed() {
   const [posts, setPosts] = useState<Post[]>([])
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [newPost, setNewPost] = useState("")
-  const [postToSquad, setPostToSquad] = useState(false)
+  const [postAudience, setPostAudience] = useState<"all" | "squad" | "mentorship">("all")
   const [isPosting, setIsPosting] = useState(false)
   const [likedPosts, setLikedPosts] = useState<number[]>([])
 
@@ -81,8 +82,9 @@ export default function InternFeed() {
       author_name: user.name,
       content: newPost.trim(),
       timestamp: new Date().toISOString(),
-      scope: postToSquad ? "squad" : "all",
+      scope: postAudience,
       squad_id: user.squad_id || "",
+      mentorship_group_id: user.mentorship_group_id || "",
       likes: 0,
       comments: 0,
     }
@@ -94,9 +96,12 @@ export default function InternFeed() {
     setNewPost("")
     setIsPosting(false)
 
+    const audienceText =
+      postAudience === "all" ? "all interns" : postAudience === "squad" ? "your squad" : "your mentorship group"
+
     toast({
       title: "Post Created",
-      description: `Your post was shared with ${postToSquad ? "your squad" : "all interns"}.`,
+      description: `Your post was shared with ${audienceText}.`,
     })
   }
 
@@ -125,6 +130,8 @@ export default function InternFeed() {
       // Show squad posts only if user is in the same squad
       if (post.scope === "squad" && post.squad_id === user.squad_id) return true
 
+      if (post.scope === "mentorship" && post.mentorship_group_id === user.mentorship_group_id) return true
+
       return false
     })
   }
@@ -141,7 +148,43 @@ export default function InternFeed() {
   }
 
   const userSquad = mockSquads.find((s) => s.id === user?.squad_id)
+  const userMentorshipGroup = mockMentorshipGroups.find((g) => g.id === user?.mentorship_group_id)
   const filteredPosts = getFilteredPosts()
+
+  const audienceOptions = [
+    {
+      value: "all",
+      label: "All Interns",
+      icon: Globe,
+      description: "Visible to everyone",
+      color: "text-green-600",
+    },
+    {
+      value: "squad",
+      label: `My Squad (${userSquad?.name || "Squad"})`,
+      icon: Users,
+      description: "Squad members only",
+      color: "text-blue-600",
+    },
+    {
+      value: "mentorship",
+      label: `My Mentorship Group (${userMentorshipGroup?.name || "Group"})`,
+      icon: Target,
+      description: "Mentorship group only",
+      color: "text-purple-600",
+    },
+  ]
+
+  const getPostScopeInfo = (scope: string) => {
+    switch (scope) {
+      case "squad":
+        return { icon: Users, label: "Squad", color: "text-blue-600", bgColor: "bg-blue-100" }
+      case "mentorship":
+        return { icon: Target, label: "Mentorship", color: "text-purple-600", bgColor: "bg-purple-100" }
+      default:
+        return { icon: Globe, label: "All", color: "text-green-600", bgColor: "bg-green-100" }
+    }
+  }
 
   return (
     <AuthGuard allowedRoles={["intern"]}>
@@ -169,21 +212,34 @@ export default function InternFeed() {
                 />
 
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Switch id="post-scope" checked={postToSquad} onCheckedChange={setPostToSquad} />
-                    <Label htmlFor="post-scope" className="flex items-center space-x-2 cursor-pointer">
-                      {postToSquad ? (
-                        <>
-                          <Users className="h-4 w-4 text-blue-600" />
-                          <span>Post to {userSquad?.name}</span>
-                        </>
-                      ) : (
-                        <>
-                          <Globe className="h-4 w-4 text-green-600" />
-                          <span>Post to All Interns</span>
-                        </>
-                      )}
+                  <div className="flex items-center space-x-3">
+                    <Label htmlFor="audience-select" className="text-sm font-medium text-gray-700">
+                      Share with:
                     </Label>
+                    <Select
+                      value={postAudience}
+                      onValueChange={(value: "all" | "squad" | "mentorship") => setPostAudience(value)}
+                    >
+                      <SelectTrigger className="w-64">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {audienceOptions.map((option) => {
+                          const IconComponent = option.icon
+                          return (
+                            <SelectItem key={option.value} value={option.value}>
+                              <div className="flex items-center space-x-2">
+                                <IconComponent className={`h-4 w-4 ${option.color}`} />
+                                <div>
+                                  <div className="font-medium">{option.label}</div>
+                                  <div className="text-xs text-gray-500">{option.description}</div>
+                                </div>
+                              </div>
+                            </SelectItem>
+                          )
+                        })}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <Button
@@ -253,6 +309,8 @@ export default function InternFeed() {
                 filteredPosts.map((post) => {
                   const author = mockUsers.find((u) => u.id === post.author_id)
                   const isLiked = likedPosts.includes(post.id)
+                  const scopeInfo = getPostScopeInfo(post.scope)
+                  const ScopeIcon = scopeInfo.icon
 
                   return (
                     <Card key={post.id} className="hover:shadow-md transition-shadow">
@@ -272,18 +330,11 @@ export default function InternFeed() {
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center space-x-2">
                                 <h4 className="font-semibold text-gray-900">{post.author_name}</h4>
-                                <Badge variant={post.scope === "squad" ? "default" : "secondary"} className="text-xs">
-                                  {post.scope === "squad" ? (
-                                    <>
-                                      <Users className="h-3 w-3 mr-1" />
-                                      Squad
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Globe className="h-3 w-3 mr-1" />
-                                      All
-                                    </>
-                                  )}
+                                <Badge
+                                  className={`${scopeInfo.bgColor} ${scopeInfo.color} hover:${scopeInfo.bgColor} text-xs`}
+                                >
+                                  <ScopeIcon className="h-3 w-3 mr-1" />
+                                  {scopeInfo.label}
                                 </Badge>
                               </div>
                               <span className="text-sm text-gray-500">{formatTimestamp(post.timestamp)}</span>

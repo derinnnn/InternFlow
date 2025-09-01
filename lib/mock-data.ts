@@ -9,8 +9,9 @@ export const mockUsers = [
     phone: "+234 803 123 4567", // Updated to Nigerian phone format
     department: "Engineering",
     squad_id: "squad_1",
+    mentorship_group_id: "mentor_1", // Added mentorship group assignment
     line_manager_id: 4,
-    interests: ["JavaScript", "Machine Learning", "UI Design"],
+    interests: ["Frontend Development", "Machine Learning", "Data Science", "JavaScript", "Python"], // Expanded interests to include more technical skills
     bio: "Passionate software engineering intern with a love for full-stack development and AI.",
     profile_picture: null,
     start_date: "2024-06-01",
@@ -27,8 +28,9 @@ export const mockUsers = [
     phone: "+234 805 234 5678", // Updated to Nigerian phone format
     department: "Marketing",
     squad_id: "squad_1",
+    mentorship_group_id: "mentor_3", // Added mentorship group assignment
     line_manager_id: 5,
-    interests: ["Digital Marketing", "Content Creation", "Analytics"],
+    interests: ["Digital Marketing", "Content Creation", "Data Analysis", "Product Management", "Business Analysis"], // Expanded interests to include more marketing skills
     bio: "Creative marketing intern focused on digital strategies and brand development.",
     profile_picture: null,
     start_date: "2024-06-01",
@@ -45,9 +47,73 @@ export const mockUsers = [
     phone: "+234 807 345 6789", // Updated to Nigerian phone format
     department: "Design",
     squad_id: "squad_1",
+    mentorship_group_id: "mentor_2", // Added mentorship group assignment
     line_manager_id: 6,
-    interests: ["UI/UX Design", "Prototyping", "User Research"],
+    interests: ["UI/UX Design", "Frontend Development", "Mobile Development", "Prototyping", "User Research"], // Expanded interests to include more design skills
     bio: "Design intern passionate about creating intuitive user experiences.",
+    profile_picture: null,
+    start_date: "2024-06-01",
+    end_date: "2024-08-30",
+    onboarding_completed: true,
+    first_login: false,
+  },
+  {
+    id: 8,
+    role: "intern",
+    username: "tolu.intern",
+    name: "Tolu Adeyinka",
+    email: "tolu.adeyinka@company.com",
+    phone: "+234 809 456 7890",
+    department: "Engineering",
+    squad_id: "squad_2",
+    mentorship_group_id: "mentor_1",
+    line_manager_id: 4,
+    interests: ["Data Science", "Machine Learning", "Python", "Artificial Intelligence", "Cloud Computing"],
+    bio: "Data-focused engineering intern passionate about AI and machine learning applications.",
+    profile_picture: null,
+    start_date: "2024-06-01",
+    end_date: "2024-08-30",
+    onboarding_completed: true,
+    first_login: false,
+  },
+  {
+    id: 9,
+    role: "intern",
+    username: "ada.intern",
+    name: "Ada Okonkwo",
+    email: "ada.okonkwo@company.com",
+    phone: "+234 811 567 8901",
+    department: "Design",
+    squad_id: "squad_2",
+    mentorship_group_id: "mentor_2",
+    line_manager_id: 6,
+    interests: [
+      "UI/UX Design",
+      "Mobile Development",
+      "Frontend Development",
+      "Product Management",
+      "Quality Assurance",
+    ],
+    bio: "Design intern with strong technical interests in mobile and web development.",
+    profile_picture: null,
+    start_date: "2024-06-01",
+    end_date: "2024-08-30",
+    onboarding_completed: true,
+    first_login: false,
+  },
+  {
+    id: 10,
+    role: "intern",
+    username: "bola.intern",
+    name: "Bola Adesanya",
+    email: "bola.adesanya@company.com",
+    phone: "+234 813 678 9012",
+    department: "Marketing",
+    squad_id: "squad_2",
+    mentorship_group_id: "mentor_3",
+    line_manager_id: 5,
+    interests: ["Digital Marketing", "Data Analysis", "Business Analysis", "Project Management", "Content Creation"],
+    bio: "Marketing intern with analytical mindset and project management skills.",
     profile_picture: null,
     start_date: "2024-06-01",
     end_date: "2024-08-30",
@@ -61,7 +127,7 @@ export const mockUsers = [
     name: "Folake Adeyemi", // Updated to Nigerian native name
     email: "folake.adeyemi@company.com", // Updated email to match new name
     department: "Engineering",
-    assigned_interns: [1],
+    assigned_interns: [1, 8], // Added more interns for better mentorship group distribution
   },
   {
     id: 5,
@@ -70,7 +136,7 @@ export const mockUsers = [
     name: "Emeka Okwu", // Updated to Nigerian native name
     email: "emeka.okwu@company.com", // Updated email to match new name
     department: "Marketing",
-    assigned_interns: [2],
+    assigned_interns: [2, 10], // Added more interns for better mentorship group distribution
   },
   {
     id: 6,
@@ -79,7 +145,7 @@ export const mockUsers = [
     name: "Funmi Ogundipe", // Updated to Nigerian native name
     email: "funmi.ogundipe@company.com", // Updated email to match new name
     department: "Design",
-    assigned_interns: [3],
+    assigned_interns: [3, 9], // Added more interns for better mentorship group distribution
   },
   {
     id: 7,
@@ -98,6 +164,13 @@ export const mockSquads = [
     name: "Summer 2024 Tech Squad",
     members: [1, 2, 3],
     description: "Cross-functional squad for summer 2024 interns",
+    created_date: "2024-05-15",
+  },
+  {
+    id: "squad_2",
+    name: "Summer 2024 Innovation Squad",
+    members: [8, 9, 10],
+    description: "Innovation-focused squad for summer 2024 interns",
     created_date: "2024-05-15",
   },
 ]
@@ -181,6 +254,34 @@ export const mockOnboardingTasks = [
   },
 ]
 
+// Comprehensive mentorship groups data
+export const mockMentorshipGroups = [
+  {
+    id: "mentor_1",
+    name: "Data Science & AI Mentees",
+    members: [1, 8],
+    sharedInterests: ["Data Science", "Machine Learning", "Python", "Artificial Intelligence"],
+    createdDate: new Date("2024-06-01"),
+    description: "Focused on data analysis, ML algorithms, AI applications, and statistical modeling",
+  },
+  {
+    id: "mentor_2",
+    name: "Frontend & Mobile Development Group",
+    members: [3, 9],
+    sharedInterests: ["Frontend Development", "UI/UX Design", "Mobile Development"],
+    createdDate: new Date("2024-06-01"),
+    description: "Building user interfaces, mobile apps, and improving user experience across platforms",
+  },
+  {
+    id: "mentor_3",
+    name: "Marketing Analytics & Strategy",
+    members: [2, 10],
+    sharedInterests: ["Digital Marketing", "Data Analysis", "Business Analysis", "Product Management"],
+    createdDate: new Date("2024-06-01"),
+    description: "Combining marketing strategy with data-driven insights and business analysis",
+  },
+]
+
 // Available interests for selection
 export const availableInterests = [
   "JavaScript",
@@ -203,6 +304,36 @@ export const availableInterests = [
   "Blockchain",
   "Product Management",
   "Project Management",
+  "Agile",
+  "Scrum",
+]
+
+export const skillCategories = [
+  "Frontend Development",
+  "Backend Development",
+  "Data Science",
+  "Machine Learning",
+  "UI/UX Design",
+  "Mobile Development",
+  "DevOps",
+  "Cybersecurity",
+  "Product Management",
+  "Digital Marketing",
+  "Data Analysis",
+  "Project Management",
+  "Business Analysis",
+  "Quality Assurance",
+  "Cloud Computing",
+  "Artificial Intelligence",
+  "Content Creation",
+  "User Research",
+  "Prototyping",
+  "JavaScript",
+  "Python",
+  "React",
+  "Node.js",
+  "Analytics",
+  "Blockchain",
   "Agile",
   "Scrum",
 ]

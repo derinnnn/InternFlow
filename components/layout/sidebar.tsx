@@ -4,13 +4,14 @@ import { useAuth } from "@/components/auth-guard"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { User, Home, Users, MessageSquare, Star, BookOpen, LogOut, CheckSquare, BarChart3 } from "lucide-react"
+import { User, Home, Users, MessageSquare, Star, BookOpen, LogOut, CheckSquare, BarChart3, Target } from "lucide-react"
 
 const internNavItems = [
   { href: "/intern/dashboard", label: "Dashboard", icon: Home },
   { href: "/intern/profile", label: "Profile", icon: User },
   { href: "/intern/onboarding", label: "Onboarding", icon: CheckSquare },
   { href: "/intern/squad", label: "My Squad", icon: Users },
+  { href: "/intern/mentorship-group", label: "Mentorship Group", icon: Target }, // Added mentorship group navigation link
   { href: "/intern/feed", label: "Social Feed", icon: MessageSquare },
   { href: "/intern/knowledge", label: "Knowledge Hub", icon: BookOpen },
   { href: "/intern/ratings", label: "Ratings", icon: Star },
