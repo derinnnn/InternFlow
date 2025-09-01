@@ -62,13 +62,17 @@ export default function AdminDashboard() {
   const [groupReassignment, setGroupReassignment] = useState({ internId: 0, newGroupId: "" })
 
   useEffect(() => {
+  // Only run on client-side (browser)
+  if (typeof window === 'undefined') return;
+  
+  try {
     const savedRatings = localStorage.getItem("internflow_ratings")
     if (savedRatings) {
       setRatings(JSON.parse(savedRatings))
     } else {
       setRatings(mockRatings)
     }
-
+    
     const savedAnnouncements = localStorage.getItem("internflow_announcements")
     if (savedAnnouncements) {
       setAnnouncements(JSON.parse(savedAnnouncements))
@@ -76,7 +80,7 @@ export default function AdminDashboard() {
       setAnnouncements(mockAnnouncements)
       localStorage.setItem("internflow_announcements", JSON.stringify(mockAnnouncements))
     }
-
+    
     const savedComplaints = localStorage.getItem("internflow_complaints")
     if (savedComplaints) {
       setComplaints(JSON.parse(savedComplaints))
@@ -84,7 +88,7 @@ export default function AdminDashboard() {
       setComplaints(mockComplaints)
       localStorage.setItem("internflow_complaints", JSON.stringify(mockComplaints))
     }
-
+    
     const savedGroups = localStorage.getItem("internflow_mentorship_groups")
     if (savedGroups) {
       setMentorshipGroups(JSON.parse(savedGroups))
@@ -92,7 +96,15 @@ export default function AdminDashboard() {
       setMentorshipGroups(mockMentorshipGroups)
       localStorage.setItem("internflow_mentorship_groups", JSON.stringify(mockMentorshipGroups))
     }
-  }, [])
+  } catch (error) {
+    console.error('Error loading data from localStorage:', error);
+    // Fallback to mock data if localStorage fails
+    setRatings(mockRatings);
+    setAnnouncements(mockAnnouncements);
+    setComplaints(mockComplaints);
+    setMentorshipGroups(mockMentorshipGroups);
+  }
+}, [])
 
   const handleCreateAnnouncement = () => {
     if (!newAnnouncement.title.trim() || !newAnnouncement.content.trim()) {
