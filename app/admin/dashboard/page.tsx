@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { AuthGuard } from "@/components/auth-guard"
 import { Sidebar } from "@/components/layout/sidebar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -30,7 +30,6 @@ import {
 import {
   Users,
   Star,
-  FileText,
   UserCheck,
   Megaphone,
   Plus,
@@ -44,68 +43,109 @@ import {
   BarChart3,
   Settings,
   MessageCircle,
+  FileText,
 } from "lucide-react"
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Pie, PieChart, Cell } from "recharts"
 
+/** ──────────────────────────────────────────────────────────────────────────
+ * SSR-SAFE HELPERS
+ * ────────────────────────────────────────────────────────────────────────── */
+const isBrowser = typeof window !== "undefined"
+const safeGetItem = (key: string) => {
+  if (!isBrowser) return null
+  try {
+    return window.localStorage.getItem(key)
+  } catch {
+    return null
+  }
+}
+const safeSetItem = (key: string, value: string) => {
+  if (!isBrowser) return
+  try {
+    window.localStorage.setItem(key, value)
+  } catch {
+    // ignore write errors in MVP
+  }
+}
+
 export default function AdminDashboard() {
+  /** ────────────────────────────────────────────────────────────────────────
+   * State
+   * ──────────────────────────────────────────────────────────────────────── */
   const [users, setUsers] = useState(mockUsers)
   const [ratings, setRatings] = useState<any[]>([])
   const [announcements, setAnnouncements] = useState<any[]>([])
   const [complaints, setComplaints] = useState<any[]>([])
   const [mentorshipGroups, setMentorshipGroups] = useState<any[]>([])
+  const [posts, setPosts] = useState<any[]>([]) // ← used by analytics (no direct localStorage)
   const [newAnnouncement, setNewAnnouncement] = useState({ title: "", content: "" })
   const [isCreatingAnnouncement, setIsCreatingAnnouncement] = useState(false)
   const [selectedComplaint, setSelectedComplaint] = useState<any>(null)
   const [selectedGroup, setSelectedGroup] = useState<any>(null)
   const [hrNotes, setHrNotes] = useState("")
-  const [complaintsFilter, setComplaintsFilter] = useState("all")
-  const [groupReassignment, setGroupReassignment] = useState({ internId: 0, newGroupId: "" })
+  const [complaintsFilter, setComplaintsFilter] = useState<"all" | "pending" | "approved" | "rejected">("all")
+  const [groupReassignment, setGroupReassignment] = useState<{ internId: number; newGroupId: any }>({
+    internId: 0,
+    newGroupId: "",
+  })
+  const [hydrated, setHydrated] = useState(false) // to avoid mismatches on first SSR pass
 
+  /** ────────────────────────────────────────────────────────────────────────
+   * Hydrate from localStorage (client-only)
+   * ──────────────────────────────────────────────────────────────────────── */
   useEffect(() => {
-  // Only run on client-side (browser)
-  if (typeof window === 'undefined') return;
-  
-  try {
-    const savedRatings = localStorage.getItem("internflow_ratings")
-    if (savedRatings) {
-      setRatings(JSON.parse(savedRatings))
-    } else {
-      setRatings(mockRatings)
-    }
-    
-    const savedAnnouncements = localStorage.getItem("internflow_announcements")
-    if (savedAnnouncements) {
-      setAnnouncements(JSON.parse(savedAnnouncements))
-    } else {
-      setAnnouncements(mockAnnouncements)
-      localStorage.setItem("internflow_announcements", JSON.stringify(mockAnnouncements))
-    }
-    
-    const savedComplaints = localStorage.getItem("internflow_complaints")
-    if (savedComplaints) {
-      setComplaints(JSON.parse(savedComplaints))
-    } else {
-      setComplaints(mockComplaints)
-      localStorage.setItem("internflow_complaints", JSON.stringify(mockComplaints))
-    }
-    
-    const savedGroups = localStorage.getItem("internflow_mentorship_groups")
-    if (savedGroups) {
-      setMentorshipGroups(JSON.parse(savedGroups))
-    } else {
-      setMentorshipGroups(mockMentorshipGroups)
-      localStorage.setItem("internflow_mentorship_groups", JSON.stringify(mockMentorshipGroups))
-    }
-  } catch (error) {
-    console.error('Error loading data from localStorage:', error);
-    // Fallback to mock data if localStorage fails
-    setRatings(mockRatings);
-    setAnnouncements(mockAnnouncements);
-    setComplaints(mockComplaints);
-    setMentorshipGroups(mockMentorshipGroups);
-  }
-}, [])
+    if (!isBrowser) return
 
+    try {
+      const savedUsers = safeGetItem("internflow_users")
+      setUsers(savedUsers ? JSON.parse(savedUsers) : mockUsers)
+
+      const savedRatings = safeGetItem("internflow_ratings")
+      setRatings(savedRatings ? JSON.parse(savedRatings) : mockRatings)
+
+      const savedAnnouncements = safeGetItem("internflow_announcements")
+      if (savedAnnouncements) {
+        setAnnouncements(JSON.parse(savedAnnouncements))
+      } else {
+        setAnnouncements(mockAnnouncements)
+        safeSetItem("internflow_announcements", JSON.stringify(mockAnnouncements))
+      }
+
+      const savedComplaints = safeGetItem("internflow_complaints")
+      if (savedComplaints) {
+        setComplaints(JSON.parse(savedComplaints))
+      } else {
+        setComplaints(mockComplaints)
+        safeSetItem("internflow_complaints", JSON.stringify(mockComplaints))
+      }
+
+      const savedGroups = safeGetItem("internflow_mentorship_groups")
+      if (savedGroups) {
+        setMentorshipGroups(JSON.parse(savedGroups))
+      } else {
+        setMentorshipGroups(mockMentorshipGroups)
+        safeSetItem("internflow_mentorship_groups", JSON.stringify(mockMentorshipGroups))
+      }
+
+      const savedPosts = safeGetItem("internflow_posts")
+      setPosts(savedPosts ? JSON.parse(savedPosts) : [])
+
+    } catch {
+      // Fallbacks if anything goes wrong
+      setUsers(mockUsers)
+      setRatings(mockRatings)
+      setAnnouncements(mockAnnouncements)
+      setComplaints(mockComplaints)
+      setMentorshipGroups(mockMentorshipGroups)
+      setPosts([])
+    } finally {
+      setHydrated(true)
+    }
+  }, [])
+
+  /** ────────────────────────────────────────────────────────────────────────
+   * Actions (client-only execution paths)
+   * ──────────────────────────────────────────────────────────────────────── */
   const handleCreateAnnouncement = () => {
     if (!newAnnouncement.title.trim() || !newAnnouncement.content.trim()) {
       alert("Please fill in both title and content")
@@ -123,7 +163,7 @@ export default function AdminDashboard() {
 
     const updatedAnnouncements = [announcement, ...announcements]
     setAnnouncements(updatedAnnouncements)
-    localStorage.setItem("internflow_announcements", JSON.stringify(updatedAnnouncements))
+    safeSetItem("internflow_announcements", JSON.stringify(updatedAnnouncements))
 
     setNewAnnouncement({ title: "", content: "" })
     setIsCreatingAnnouncement(false)
@@ -144,7 +184,6 @@ export default function AdminDashboard() {
             if (user.id === complaint.internId) {
               const newDept = mockDepartments.find((d) => d.name === complaint.requestedDepartment)
               const newManager = users.find((u) => u.name === newDept?.manager && u.role === "line_manager")
-
               return {
                 ...user,
                 department: complaint.requestedDepartment,
@@ -155,7 +194,7 @@ export default function AdminDashboard() {
           })
 
           setUsers(updatedUsers)
-          localStorage.setItem("internflow_users", JSON.stringify(updatedUsers))
+          safeSetItem("internflow_users", JSON.stringify(updatedUsers))
         }
 
         return updatedComplaint
@@ -164,7 +203,7 @@ export default function AdminDashboard() {
     })
 
     setComplaints(updatedComplaints)
-    localStorage.setItem("internflow_complaints", JSON.stringify(updatedComplaints))
+    safeSetItem("internflow_complaints", JSON.stringify(updatedComplaints))
     setSelectedComplaint(null)
     setHrNotes("")
   }
@@ -193,15 +232,18 @@ export default function AdminDashboard() {
 
     setUsers(updatedUsers)
     setMentorshipGroups(updatedGroups)
-    localStorage.setItem("internflow_users", JSON.stringify(updatedUsers))
-    localStorage.setItem("internflow_mentorship_groups", JSON.stringify(updatedGroups))
+    safeSetItem("internflow_users", JSON.stringify(updatedUsers))
+    safeSetItem("internflow_mentorship_groups", JSON.stringify(updatedGroups))
     setGroupReassignment({ internId: 0, newGroupId: "" })
   }
 
-  const filteredComplaints = complaints.filter((complaint) => {
-    if (complaintsFilter === "all") return true
-    return complaint.status === complaintsFilter
-  })
+  /** ────────────────────────────────────────────────────────────────────────
+   * Derived values (no localStorage access)
+   * ──────────────────────────────────────────────────────────────────────── */
+  const filteredComplaints = useMemo(() => {
+    if (complaintsFilter === "all") return complaints
+    return complaints.filter((c) => c.status === complaintsFilter)
+  }, [complaints, complaintsFilter])
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -242,20 +284,18 @@ export default function AdminDashboard() {
     }
   }
 
-  const getMentorshipAnalytics = () => {
+  // Mentorship analytics — **NO localStorage access here**
+  const mentorshipAnalytics = useMemo(() => {
     const totalGroups = mentorshipGroups.length
     const totalInterns = users.filter((u) => u.role === "intern").length
     const internsInGroups = users.filter((u) => u.role === "intern" && u.mentorship_group_id).length
     const avgGroupSize = totalGroups > 0 ? internsInGroups / totalGroups : 0
 
-    // Get posts from localStorage to calculate engagement
-    const savedPosts = localStorage.getItem("internflow_posts")
-    const allPosts = savedPosts ? JSON.parse(savedPosts) : []
-    const mentorshipPosts = allPosts.filter((post: any) => post.scope === "mentorship")
+    const mentorshipPosts = (posts || []).filter((p: any) => p.scope === "mentorship")
 
     const groupEngagement = mentorshipGroups.map((group) => {
-      const groupPosts = mentorshipPosts.filter((post: any) => post.mentorship_group_id === group.id)
-      const totalLikes = groupPosts.reduce((sum: number, post: any) => sum + (post.likes || 0), 0)
+      const groupPosts = mentorshipPosts.filter((p: any) => p.mentorship_group_id === group.id)
+      const totalLikes = groupPosts.reduce((sum: number, p: any) => sum + (p.likes || 0), 0)
 
       return {
         name: group.name,
@@ -285,10 +325,10 @@ export default function AdminDashboard() {
       skillDistribution,
       mentorshipPosts: mentorshipPosts.length,
     }
-  }
+  }, [mentorshipGroups, users, posts])
 
-  const totalInterns = users.filter((u) => u.role === "intern").length
-  const totalManagers = users.filter((u) => u.role === "line_manager").length
+  const totalInterns = useMemo(() => users.filter((u) => u.role === "intern").length, [users])
+  const totalManagers = useMemo(() => users.filter((u) => u.role === "line_manager").length, [users])
   const totalRatings = ratings.length
   const avgRating = ratings.length > 0 ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length : 0
 
@@ -308,18 +348,17 @@ export default function AdminDashboard() {
 
   const departmentData = users
     .filter((u) => u.role === "intern")
-    .reduce(
-      (acc, user) => {
-        const dept = user.department || "Unknown"
-        acc[dept] = (acc[dept] || 0) + 1
-        return acc
-      },
-      {} as Record<string, number>,
-    )
+    .reduce((acc, user) => {
+      const dept = user.department || "Unknown"
+      acc[dept] = (acc[dept] || 0) + 1
+      return acc
+    }, {} as Record<string, number>)
 
   const departmentChartData = Object.entries(departmentData).map(([name, value]) => ({ name, value }))
-  const mentorshipAnalytics = getMentorshipAnalytics()
 
+  /** ────────────────────────────────────────────────────────────────────────
+   * Render
+   * ──────────────────────────────────────────────────────────────────────── */
   return (
     <AuthGuard allowedRoles={["hr_admin"]}>
       <div className="flex">
@@ -331,6 +370,7 @@ export default function AdminDashboard() {
               <p className="text-gray-600">Comprehensive overview of the internship program</p>
             </div>
 
+            {/* Top KPIs */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               <Card>
                 <CardContent className="p-6">
@@ -391,6 +431,7 @@ export default function AdminDashboard() {
                 <TabsTrigger value="mentorship">Mentorship</TabsTrigger>
               </TabsList>
 
+              {/* Analytics */}
               <TabsContent value="analytics" className="space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <Card>
@@ -474,12 +515,16 @@ export default function AdminDashboard() {
                               </p>
                             </div>
                           ))}
+                        {ratings.filter((r) => r.feedback && r.feedback.trim()).length === 0 && (
+                          <p className="text-sm text-gray-500">No feedback yet.</p>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
                 </div>
               </TabsContent>
 
+              {/* Announcements */}
               <TabsContent value="announcements" className="space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <Card className="lg:col-span-1">
@@ -574,6 +619,7 @@ export default function AdminDashboard() {
                 </div>
               </TabsContent>
 
+              {/* Complaints */}
               <TabsContent value="complaints" className="space-y-6">
                 <Card>
                   <CardHeader>
@@ -587,32 +633,16 @@ export default function AdminDashboard() {
                   </CardHeader>
                   <CardContent>
                     <div className="flex gap-4 mb-6">
-                      <Button
-                        variant={complaintsFilter === "all" ? "default" : "outline"}
-                        onClick={() => setComplaintsFilter("all")}
-                        size="sm"
-                      >
+                      <Button variant={complaintsFilter === "all" ? "default" : "outline"} onClick={() => setComplaintsFilter("all")} size="sm">
                         All ({complaints.length})
                       </Button>
-                      <Button
-                        variant={complaintsFilter === "pending" ? "default" : "outline"}
-                        onClick={() => setComplaintsFilter("pending")}
-                        size="sm"
-                      >
+                      <Button variant={complaintsFilter === "pending" ? "default" : "outline"} onClick={() => setComplaintsFilter("pending")} size="sm">
                         Pending ({complaints.filter((c) => c.status === "pending").length})
                       </Button>
-                      <Button
-                        variant={complaintsFilter === "approved" ? "default" : "outline"}
-                        onClick={() => setComplaintsFilter("approved")}
-                        size="sm"
-                      >
+                      <Button variant={complaintsFilter === "approved" ? "default" : "outline"} onClick={() => setComplaintsFilter("approved")} size="sm">
                         Approved ({complaints.filter((c) => c.status === "approved").length})
                       </Button>
-                      <Button
-                        variant={complaintsFilter === "rejected" ? "default" : "outline"}
-                        onClick={() => setComplaintsFilter("rejected")}
-                        size="sm"
-                      >
+                      <Button variant={complaintsFilter === "rejected" ? "default" : "outline"} onClick={() => setComplaintsFilter("rejected")} size="sm">
                         Rejected ({complaints.filter((c) => c.status === "rejected").length})
                       </Button>
                     </div>
@@ -623,9 +653,7 @@ export default function AdminDashboard() {
                           <AlertTriangle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                           <p className="text-gray-600">No complaints found</p>
                           <p className="text-sm text-gray-500">
-                            {complaintsFilter === "all"
-                              ? "No complaints have been submitted yet"
-                              : `No ${complaintsFilter} complaints`}
+                            {complaintsFilter === "all" ? "No complaints have been submitted yet" : `No ${complaintsFilter} complaints`}
                           </p>
                         </div>
                       ) : (
@@ -672,17 +700,11 @@ export default function AdminDashboard() {
                                       {complaint.type === "department_change" && (
                                         <>
                                           <div>
-                                            <label className="text-sm font-medium text-gray-700">
-                                              Requested Department
-                                            </label>
-                                            <p className="text-sm text-gray-900 mt-1">
-                                              {complaint.requestedDepartment}
-                                            </p>
+                                            <label className="text-sm font-medium text-gray-700">Requested Department</label>
+                                            <p className="text-sm text-gray-900 mt-1">{complaint.requestedDepartment}</p>
                                           </div>
                                           <div>
-                                            <label className="text-sm font-medium text-gray-700">
-                                              Reason for Change
-                                            </label>
+                                            <label className="text-sm font-medium text-gray-700">Reason for Change</label>
                                             <p className="text-sm text-gray-900 mt-1 p-3 bg-gray-50 rounded">
                                               {complaint.reasonForNewDept}
                                             </p>
@@ -707,9 +729,7 @@ export default function AdminDashboard() {
                                       {complaint.status === "pending" && (
                                         <div className="space-y-4 pt-4 border-t">
                                           <div>
-                                            <label className="text-sm font-medium text-gray-700 mb-2 block">
-                                              HR Notes
-                                            </label>
+                                            <label className="text-sm font-medium text-gray-700 mb-2 block">HR Notes</label>
                                             <Textarea
                                               placeholder="Add notes about your decision..."
                                               value={hrNotes}
@@ -718,18 +738,11 @@ export default function AdminDashboard() {
                                             />
                                           </div>
                                           <div className="flex gap-2">
-                                            <Button
-                                              onClick={() => handleComplaintAction(complaint.id, "approved")}
-                                              className="flex-1 bg-green-600 hover:bg-green-700"
-                                            >
+                                            <Button onClick={() => handleComplaintAction(complaint.id, "approved")} className="flex-1 bg-green-600 hover:bg-green-700">
                                               <CheckCircle className="h-4 w-4 mr-1" />
                                               Approve
                                             </Button>
-                                            <Button
-                                              onClick={() => handleComplaintAction(complaint.id, "rejected")}
-                                              variant="destructive"
-                                              className="flex-1"
-                                            >
+                                            <Button onClick={() => handleComplaintAction(complaint.id, "rejected")} variant="destructive" className="flex-1">
                                               <XCircle className="h-4 w-4 mr-1" />
                                               Reject
                                             </Button>
@@ -756,6 +769,7 @@ export default function AdminDashboard() {
                 </Card>
               </TabsContent>
 
+              {/* Users */}
               <TabsContent value="users">
                 <Card>
                   <CardHeader>
@@ -775,6 +789,7 @@ export default function AdminDashboard() {
                 </Card>
               </TabsContent>
 
+              {/* Knowledge Hub */}
               <TabsContent value="knowledge">
                 <Card>
                   <CardHeader>
@@ -794,6 +809,7 @@ export default function AdminDashboard() {
                 </Card>
               </TabsContent>
 
+              {/* Mentorship */}
               <TabsContent value="mentorship" className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                   <Card>
@@ -826,9 +842,7 @@ export default function AdminDashboard() {
                         <BarChart3 className="h-8 w-8 text-green-600" />
                         <div className="ml-4">
                           <p className="text-sm font-medium text-gray-600">Avg Group Size</p>
-                          <p className="text-2xl font-bold text-gray-900">
-                            {mentorshipAnalytics.avgGroupSize.toFixed(1)}
-                          </p>
+                          <p className="text-2xl font-bold text-gray-900">{mentorshipAnalytics.avgGroupSize.toFixed(1)}</p>
                         </div>
                       </div>
                     </CardContent>
@@ -979,7 +993,7 @@ export default function AdminDashboard() {
                         <label className="text-sm font-medium text-gray-700 mb-2 block">Reassign Intern</label>
                         <div className="space-y-3">
                           <Select
-                            value={groupReassignment.internId.toString()}
+                            value={groupReassignment.internId ? groupReassignment.internId.toString() : ""}
                             onValueChange={(value) =>
                               setGroupReassignment((prev) => ({ ...prev, internId: Number.parseInt(value) }))
                             }
@@ -1031,19 +1045,21 @@ export default function AdminDashboard() {
                           <div className="flex justify-between">
                             <span>Coverage Rate:</span>
                             <span>
-                              {((mentorshipAnalytics.internsInGroups / mentorshipAnalytics.totalInterns) * 100).toFixed(
-                                1,
-                              )}
+                              {mentorshipAnalytics.totalInterns > 0
+                                ? ((mentorshipAnalytics.internsInGroups / mentorshipAnalytics.totalInterns) * 100).toFixed(1)
+                                : "0.0"}
                               %
                             </span>
                           </div>
                           <div className="flex justify-between">
                             <span>Avg Engagement:</span>
                             <span>
-                              {(
-                                mentorshipAnalytics.groupEngagement.reduce((sum, g) => sum + g.engagement, 0) /
-                                mentorshipAnalytics.totalGroups
-                              ).toFixed(1)}
+                              {mentorshipAnalytics.totalGroups > 0
+                                ? (
+                                    mentorshipAnalytics.groupEngagement.reduce((sum, g) => sum + g.engagement, 0) /
+                                    mentorshipAnalytics.totalGroups
+                                  ).toFixed(1)
+                                : "0.0"}
                             </span>
                           </div>
                           <div className="flex justify-between">
