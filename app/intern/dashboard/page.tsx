@@ -110,7 +110,7 @@ export default function InternDashboard() {
                   <div className="flex items-start space-x-3">
                     <div className="w-2 h-2 bg-blue-600 rounded-full mt-2"></div>
                     <div>
-                      <p className="text-sm font-medium">Posted in Summer 2024 Tech Squad</p>
+                      <p className="text-sm font-medium">Posted in SIWES Engineering Squad</p>
                       <p className="text-xs text-gray-500">2 hours ago</p>
                     </div>
                   </div>
@@ -118,7 +118,7 @@ export default function InternDashboard() {
                   <div className="flex items-start space-x-3">
                     <div className="w-2 h-2 bg-green-600 rounded-full mt-2"></div>
                     <div>
-                      <p className="text-sm font-medium">Completed IT setup task</p>
+                      <p className="text-sm font-medium">Completed network infrastructure training</p>
                       <p className="text-xs text-gray-500">1 day ago</p>
                     </div>
                   </div>
@@ -126,7 +126,7 @@ export default function InternDashboard() {
                   <div className="flex items-start space-x-3">
                     <div className="w-2 h-2 bg-purple-600 rounded-full mt-2"></div>
                     <div>
-                      <p className="text-sm font-medium">Rated squad member</p>
+                      <p className="text-sm font-medium">Joined Software & Technology mentorship group</p>
                       <p className="text-xs text-gray-500">2 days ago</p>
                     </div>
                   </div>

@@ -11,7 +11,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { mockPosts, mockUsers, mockSquads, mockMentorshipGroups } from "@/lib/mock-data"
-import { Heart, MessageCircle, Send, Users, Globe, Megaphone, Target } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 interface Post {
@@ -155,21 +154,21 @@ export default function InternFeed() {
     {
       value: "all",
       label: "All Interns",
-      icon: Globe,
+      icon: "🌍",
       description: "Visible to everyone",
       color: "text-green-600",
     },
     {
       value: "squad",
       label: `My Squad (${userSquad?.name || "Squad"})`,
-      icon: Users,
+      icon: "👥",
       description: "Squad members only",
       color: "text-blue-600",
     },
     {
       value: "mentorship",
       label: `My Mentorship Group (${userMentorshipGroup?.name || "Group"})`,
-      icon: Target,
+      icon: "🎯",
       description: "Mentorship group only",
       color: "text-purple-600",
     },
@@ -178,11 +177,11 @@ export default function InternFeed() {
   const getPostScopeInfo = (scope: string) => {
     switch (scope) {
       case "squad":
-        return { icon: Users, label: "Squad", color: "text-blue-600", bgColor: "bg-blue-100" }
+        return { icon: "👥", label: "Squad", color: "text-blue-600", bgColor: "bg-blue-100" }
       case "mentorship":
-        return { icon: Target, label: "Mentorship", color: "text-purple-600", bgColor: "bg-purple-100" }
+        return { icon: "🎯", label: "Mentorship", color: "text-purple-600", bgColor: "bg-purple-100" }
       default:
-        return { icon: Globe, label: "All", color: "text-green-600", bgColor: "bg-green-100" }
+        return { icon: "🌍", label: "All", color: "text-green-600", bgColor: "bg-green-100" }
     }
   }
 
@@ -224,20 +223,17 @@ export default function InternFeed() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {audienceOptions.map((option) => {
-                          const IconComponent = option.icon
-                          return (
-                            <SelectItem key={option.value} value={option.value}>
-                              <div className="flex items-center space-x-2">
-                                <IconComponent className={`h-4 w-4 ${option.color}`} />
-                                <div>
-                                  <div className="font-medium">{option.label}</div>
-                                  <div className="text-xs text-gray-500">{option.description}</div>
-                                </div>
+                        {audienceOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            <div className="flex items-center space-x-2">
+                              <span className="text-sm">{option.icon}</span>
+                              <div>
+                                <div className="font-medium">{option.label}</div>
+                                <div className="text-xs text-gray-500">{option.description}</div>
                               </div>
-                            </SelectItem>
-                          )
-                        })}
+                            </div>
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -247,14 +243,7 @@ export default function InternFeed() {
                     disabled={!newPost.trim() || isPosting}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
-                    {isPosting ? (
-                      "Posting..."
-                    ) : (
-                      <>
-                        <Send className="h-4 w-4 mr-2" />
-                        Post
-                      </>
-                    )}
+                    {isPosting ? "Posting..." : <>📤 Post</>}
                   </Button>
                 </div>
               </CardContent>
@@ -270,17 +259,14 @@ export default function InternFeed() {
                   <CardContent className="p-6">
                     <div className="flex items-start space-x-3">
                       <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <Megaphone className="h-5 w-5 text-blue-600" />
+                        <span className="text-lg">📢</span>
                       </div>
 
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center space-x-2">
                             <h4 className="font-semibold text-gray-900">{announcement.title}</h4>
-                            <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
-                              <Megaphone className="h-3 w-3 mr-1" />
-                              Announcement
-                            </Badge>
+                            <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">📢 Announcement</Badge>
                           </div>
                           <span className="text-sm text-gray-500">{formatTimestamp(announcement.timestamp)}</span>
                         </div>
@@ -300,7 +286,7 @@ export default function InternFeed() {
               {filteredPosts.length === 0 && announcements.length === 0 ? (
                 <Card>
                   <CardContent className="p-8 text-center">
-                    <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <div className="text-4xl mb-4">💬</div>
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No posts yet</h3>
                     <p className="text-gray-600">Be the first to share something with your fellow interns!</p>
                   </CardContent>
@@ -310,7 +296,6 @@ export default function InternFeed() {
                   const author = mockUsers.find((u) => u.id === post.author_id)
                   const isLiked = likedPosts.includes(post.id)
                   const scopeInfo = getPostScopeInfo(post.scope)
-                  const ScopeIcon = scopeInfo.icon
 
                   return (
                     <Card key={post.id} className="hover:shadow-md transition-shadow">
@@ -333,8 +318,7 @@ export default function InternFeed() {
                                 <Badge
                                   className={`${scopeInfo.bgColor} ${scopeInfo.color} hover:${scopeInfo.bgColor} text-xs`}
                                 >
-                                  <ScopeIcon className="h-3 w-3 mr-1" />
-                                  {scopeInfo.label}
+                                  {scopeInfo.icon} {scopeInfo.label}
                                 </Badge>
                               </div>
                               <span className="text-sm text-gray-500">{formatTimestamp(post.timestamp)}</span>
@@ -349,12 +333,12 @@ export default function InternFeed() {
                                 onClick={() => handleLikePost(post.id)}
                                 className={`${isLiked ? "text-red-600 hover:text-red-700" : "text-gray-600 hover:text-red-600"}`}
                               >
-                                <Heart className={`h-4 w-4 mr-1 ${isLiked ? "fill-current" : ""}`} />
+                                <span className="mr-1">{isLiked ? "❤️" : "🤍"}</span>
                                 {post.likes}
                               </Button>
 
                               <Button variant="ghost" size="sm" className="text-gray-600 hover:text-blue-600">
-                                <MessageCircle className="h-4 w-4 mr-1" />
+                                <span className="mr-1">💬</span>
                                 {post.comments}
                               </Button>
                             </div>
